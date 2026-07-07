@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+
+/* ── DARK THEME (default) ── */
+:root, [data-theme="dark"] {
+  --bg-base:      #130f0c;
+  --bg-card:      #1e1a16;
+  --bg-input:     #2a2420;
+  --border:       #2e2820;
+  --border-input: #3e3028;
+  --text-primary: #F7F3EE;
+  --text-muted:   #9a8b7d;
+  --text-faint:   #6b5d50;
+  --text-xfaint:  #4a3d33;
+  --sidebar-bg:   #130f0c;
+  --accent:       #F2B82A;
+  --accent2:      #C6552A;
+}
+
+/* ── LIGHT THEME ── */
+[data-theme="light"] {
+  --bg-base:      #F7F3EE;
+  --bg-card:      #FFFFFF;
+  --bg-input:     #F0EBE3;
+  --border:       #E5DDD4;
+  --border-input: #D5C9BC;
+  --text-primary: #1C1410;
+  --text-muted:   #6b5d50;
+  --text-faint:   #9a8b7d;
+  --text-xfaint:  #b3a594;
+  --sidebar-bg:   #F0EBE3;
+  --accent:       #C6552A;
+  --accent2:      #1A4060;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+.font-display { font-family: 'Syne', 'Plus Jakarta Sans', sans-serif; }
+
+/* Theme-aware utility classes */
+.bg-base    { background: var(--bg-base); }
+.bg-card    { background: var(--bg-card); }
+.bg-input   { background: var(--bg-input); }
+.border-theme { border-color: var(--border); }
+.text-primary { color: var(--text-primary); }
+.text-muted   { color: var(--text-muted); }
+.text-faint   { color: var(--text-faint); }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-input); }
