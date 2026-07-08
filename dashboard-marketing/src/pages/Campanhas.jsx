@@ -4,6 +4,8 @@ import { brl, num, pct, MESES } from '../lib/fmt'
 import { Card, PageHeader, Badge, Btn, Modal, Input, Select, StatCard, EmptyState } from '../components/UI'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts'
 import { useAuth } from '../lib/AuthContext'
+import { syncMetaAds } from '../lib/sync'
+import { RefreshBtn } from '../components/UI'
 
 const PLATAFORMAS = ['meta','google','youtube','tiktok','organico','offline']
 const STATUS_COLOR = { ativa:'green', pausada:'yellow', encerrada:'gray' }
@@ -30,6 +32,19 @@ export default function Campanhas() {
     leads:'', leads_qualificados:'', visitas_stand:'', reservas:'', vendas:''
   })
   const [safraData, setSafraData] = useState([])
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState('')
+
+  async function handleSync() {
+    setSyncing(true); setSyncMsg('')
+    try {
+      const r = await syncMetaAds()
+      setSyncMsg(r.ok ? `✓ ${r.campanhas} campanhas sincronizadas` : '✗ Erro na sincronização')
+      await load()
+    } catch(e) { setSyncMsg('✗ ' + e.message) }
+    setSyncing(false)
+    setTimeout(()=>setSyncMsg(''),5000)
+  }
 
   async function load() {
     const [campR, empsR] = await Promise.all([
@@ -159,7 +174,12 @@ export default function Campanhas() {
               </div>
             </PageHeader>
 
-            {/* Tabs */}
+            {syncMsg && (
+            <div className="mb-3 text-xs px-3 py-2 rounded-lg" style={{background:'var(--bg-input)',color:syncMsg.startsWith('✓')?'#4ade80':'#f87171'}}>
+              {syncMsg}
+            </div>
+          )}
+          {/* Tabs */}
             <div className="flex gap-1 mb-6 border-b" style={{borderColor:'var(--border)'}}>
               {['planejamento','kpis','safra'].map(t=>(
                 <button key={t} onClick={()=>setTab(t)}

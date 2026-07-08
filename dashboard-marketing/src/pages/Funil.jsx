@@ -4,6 +4,8 @@ import { brl, num, pct, MESES } from '../lib/fmt'
 import { Card, PageHeader, StatCard, Btn, Modal, Input, Select, DateFilter, ExportBtn, Badge } from '../components/UI'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { useAuth } from '../lib/AuthContext'
+import { syncPipedrive } from '../lib/sync'
+import { RefreshBtn } from '../components/UI'
 
 const CANAIS = ['pago','organico','offline','direto']
 const ORIGENS = ['meta','google','organico_ig','organico_fb','youtube','indicacao','evento','direto','outro']
@@ -25,6 +27,8 @@ export default function Funil() {
   const [emps, setEmps] = useState([])
   const [modalFunil, setModalFunil] = useState(false)
   const [modalPipedrive, setModalPipedrive] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState('')
   const [filtro, setFiltro] = useState({ de:'', ate:'', emp:'', canal:'' })
   const [form, setForm] = useState({
     data:'', empreendimento_id:'', canal:'pago', origem:'meta',
@@ -36,6 +40,17 @@ export default function Funil() {
     data_snapshot:'', empreendimento_id:'', estagio:'lead',
     quantidade:0, valor_total:0, origem:''
   })
+
+  async function handleSyncPipedrive() {
+    setSyncing(true); setSyncMsg('')
+    try {
+      const r = await syncPipedrive()
+      setSyncMsg(r.ok ? `✓ Pipedrive sincronizado — ${r.estagios?.length||0} etapas` : '✗ Erro: configure PIPEDRIVE_API_TOKEN nas secrets do Supabase')
+      await load()
+    } catch(e) { setSyncMsg('✗ ' + e.message) }
+    setSyncing(false)
+    setTimeout(()=>setSyncMsg(''),6000)
+  }
 
   async function load() {
     const [eR, sR, empsR] = await Promise.all([
@@ -132,11 +147,17 @@ export default function Funil() {
       <PageHeader title="Funil de Marketing & Vendas" sub="Visão completa do pipeline: awareness até personalização">
         <div className="flex gap-2 no-print">
           {can('canAddCampanhas') && <Btn onClick={()=>setModalFunil(true)}>+ Lançar Funil</Btn>}
-          {can('canAddCampanhas') && <Btn variant="ghost" onClick={()=>setModalPipedrive(true)}>+ Snapshot Pipedrive</Btn>}
+          {can('canAddCampanhas') && <Btn variant="ghost" onClick={()=>setModalPipedrive(true)}>+ Snapshot</Btn>}
+          <RefreshBtn onRefresh={handleSyncPipedrive} loading={syncing} label="Sync Pipedrive"/>
           <ExportBtn/>
         </div>
       </PageHeader>
 
+      {syncMsg && (
+        <div className="mb-3 text-xs px-3 py-2 rounded-lg no-print" style={{background:'var(--bg-input)',color:syncMsg.startsWith('✓')?'#4ade80':'#f87171'}}>
+          {syncMsg}
+        </div>
+      )}
       {/* Tabs */}
       <div className="flex gap-1 mb-6 border-b no-print" style={{borderColor:'var(--border)'}}>
         {[{k:'funil',l:'Funil Completo'},{k:'safra',l:'Safra Mensal'},{k:'pipedrive',l:'Pipedrive Safra'}].map(({k,l})=>(

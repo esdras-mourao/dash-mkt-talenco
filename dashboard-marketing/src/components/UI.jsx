@@ -159,3 +159,17 @@ export function ExportBtn({ label = 'Exportar PDF' }) {
     </button>
   )
 }
+
+// ── REFRESH BUTTON ──────────────────────────────────────────
+export function RefreshBtn({ onRefresh, loading, label = 'Atualizar' }) {
+  return (
+    <button
+      onClick={onRefresh}
+      disabled={loading}
+      className="no-print flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold border transition-all hover:opacity-80 disabled:opacity-40"
+      style={{background:'var(--bg-input)',borderColor:'var(--border)',color:'var(--text-muted)'}}>
+      <span className={loading ? 'animate-spin inline-block' : ''}>↻</span>
+      {loading ? 'Sincronizando...' : label}
+    </button>
+  )
+}

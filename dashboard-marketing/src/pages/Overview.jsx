@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { supabase } from '../lib/supabase'
 import { brl, num, MESES, COR_EMP } from '../lib/fmt'
-import { StatCard, Card, PageHeader, Badge } from '../components/UI'
+import { StatCard, Card, PageHeader, Badge, RefreshBtn } from '../components/UI'
+import { syncAll } from '../lib/sync'
 
 const ANO = new Date().getFullYear()
 
@@ -13,6 +14,8 @@ export default function Overview() {
   const [audiencia, setAudiencia] = useState([])
   const [alertas, setAlertas] = useState([])
   const [loading, setLoading] = useState(true)
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState('')
 
   useEffect(() => {
     async function load() {
@@ -62,16 +65,34 @@ export default function Overview() {
 
   const COLORS = ['#F2B82A','#C6552A','#1A4060','#D4956A','#4a7c59','#9a8b7d']
 
+  async function handleSyncAll() {
+    setSyncing(true); setSyncMsg('')
+    try {
+      const r = await syncAll()
+      const metaOk = r.meta?.ok
+      const pipeOk = r.pipedrive?.ok
+      setSyncMsg(`Meta: ${metaOk?'✓':'✗'} ${r.meta?.campanhas||r.meta?.erro||''} | Pipedrive: ${pipeOk?'✓':'✗'} ${r.pipedrive?.estagios?.length||r.pipedrive?.erro||''}`)
+      await load()
+    } catch(e) { setSyncMsg('✗ ' + e.message) }
+    setSyncing(false)
+    setTimeout(()=>setSyncMsg(''),8000)
+  }
+
   if (loading) return <div className="flex-1 flex items-center justify-center text-[#6b5d50]">Carregando...</div>
 
   return (
     <div className="flex-1 p-8 overflow-y-auto">
-      <PageHeader
-        title="Visão Geral"
-        sub={`Marketing TalenCo · ${ANO}`}
-      >
-        <Badge color="yellow">{ANO}</Badge>
+      <PageHeader title="Visão Geral" sub={`Marketing TalenCo · ${ANO}`}>
+        <div className="flex gap-2 items-center no-print">
+          <RefreshBtn onRefresh={handleSyncAll} loading={syncing} label="Sync Meta + Pipedrive"/>
+          <Badge color="yellow">{ANO}</Badge>
+        </div>
       </PageHeader>
+      {syncMsg && (
+        <div className="mb-4 text-xs px-3 py-2 rounded-lg no-print" style={{background:'var(--bg-input)',color:'var(--text-muted)'}}>
+          {syncMsg}
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
