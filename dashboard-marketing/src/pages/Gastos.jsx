@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { brl } from '../lib/fmt'
-import { Card, PageHeader, Badge, Btn, Modal, Input, Select, StatCard } from '../components/UI'
+import { Card, PageHeader, Badge, Btn, Modal, Input, Select, DateFilter, ExportBtn } from '../components/UI'
 import { useAuth } from '../lib/AuthContext'
 
 const CATS = ['midia','eventos','ferramentas','pessoas','outros']
@@ -13,17 +13,16 @@ export default function Gastos() {
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({ data:'', empreendimento_id:'', categoria:'midia', subcategoria:'', descricao:'', fornecedor:'', valor:'' })
-  const [filtro, setFiltro] = useState({ cat:'', emp:'' })
+  const [filtro, setFiltro] = useState({ cat:'', emp:'', de:'', ate:'' })
 
   async function load() {
     const [gastosR, empsR] = await Promise.all([
-      supabase.from('gastos').select('*, empreendimentos(nome)').order('data',{ascending:false}).limit(300),
+      supabase.from('gastos').select('*, empreendimentos(nome)').order('data',{ascending:false}).limit(500),
       supabase.from('empreendimentos').select('*').eq('ativo',true),
     ])
     setGastos(gastosR.data||[])
     setEmps(empsR.data||[])
   }
-
   useEffect(() => { load() }, [])
 
   function openNew() { setEditing(null); setForm({ data:'', empreendimento_id:'', categoria:'midia', subcategoria:'', descricao:'', fornecedor:'', valor:'' }); setModal(true) }
@@ -41,28 +40,36 @@ export default function Gastos() {
     await supabase.from('gastos').delete().eq('id',id); await load()
   }
 
-  const filtered = gastos.filter(g=>(!filtro.cat||g.categoria===filtro.cat)&&(!filtro.emp||String(g.empreendimento_id)===filtro.emp))
+  const filtered = gastos.filter(g=>
+    (!filtro.cat || g.categoria===filtro.cat) &&
+    (!filtro.emp || String(g.empreendimento_id)===filtro.emp) &&
+    (!filtro.de || g.data >= filtro.de) &&
+    (!filtro.ate || g.data <= filtro.ate)
+  )
   const total = filtered.reduce((s,g)=>s+Number(g.valor),0)
 
   return (
     <div className="flex-1 p-8 overflow-y-auto" style={{background:'var(--bg-base)'}}>
       <PageHeader title="Gastos de Marketing" sub="Registro de todas as despesas">
-        {can('canAddGastos') && <Btn onClick={openNew}>+ Novo Gasto</Btn>}
+        <div className="flex gap-2 no-print">
+          {can('canAddGastos') && <Btn onClick={openNew}>+ Novo Gasto</Btn>}
+          <ExportBtn/>
+        </div>
       </PageHeader>
-      <div className="flex gap-3 mb-6 flex-wrap">
+
+      <div className="flex gap-3 mb-4 flex-wrap no-print">
         <Select value={filtro.cat} onChange={e=>setFiltro(f=>({...f,cat:e.target.value}))}>
           <option value="">Todas as categorias</option>
           {CATS.map(c=><option key={c} value={c}>{c}</option>)}
         </Select>
         <Select value={filtro.emp} onChange={e=>setFiltro(f=>({...f,emp:e.target.value}))}>
           <option value="">Todos empreendimentos</option>
-          <option value="null">Institucional</option>
           {emps.map(e=><option key={e.id} value={e.id}>{e.nome}</option>)}
         </Select>
-        <div className="border rounded-lg px-3 py-2 text-sm font-semibold" style={{borderColor:'var(--border)',color:'var(--accent)',background:'var(--bg-card)'}}>
-          Total: {brl(total,2)}
-        </div>
+        <DateFilter from={filtro.de} to={filtro.ate} onFrom={v=>setFiltro(f=>({...f,de:v}))} onTo={v=>setFiltro(f=>({...f,ate:v}))} onClear={()=>setFiltro(f=>({...f,de:'',ate:''}))}/>
+        <div className="text-xs self-end mb-1 font-semibold" style={{color:'var(--accent)'}}>Total: {brl(total,2)}</div>
       </div>
+
       <Card>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -74,18 +81,16 @@ export default function Gastos() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length===0 && (
-                <tr><td colSpan={7} className="text-center py-8 text-sm italic" style={{color:'var(--text-faint)'}}>Nenhum gasto registrado</td></tr>
-              )}
+              {filtered.length===0 && <tr><td colSpan={7} className="text-center py-8 text-sm italic" style={{color:'var(--text-faint)'}}>Nenhum gasto</td></tr>}
               {filtered.map(g=>(
-                <tr key={g.id} className="border-b hover:opacity-80" style={{borderColor:'var(--border)'}}>
-                  <td className="py-2.5 pr-4 text-xs" style={{color:'var(--text-faint)'}}>{g.data}</td>
-                  <td className="py-2.5 pr-4" style={{color:'var(--text-primary)'}}>{g.descricao}</td>
-                  <td className="py-2.5 pr-4 text-xs" style={{color:'var(--text-faint)'}}>{g.empreendimentos?.nome||'Institucional'}</td>
-                  <td className="py-2.5 pr-4"><Badge color="gray">{g.categoria}</Badge></td>
-                  <td className="py-2.5 pr-4 text-xs" style={{color:'var(--text-faint)'}}>{g.fornecedor||'—'}</td>
-                  <td className="py-2.5 pr-4 font-semibold" style={{color:'var(--accent)'}}>{brl(g.valor,2)}</td>
-                  <td className="py-2.5">
+                <tr key={g.id} className="border-b" style={{borderColor:'var(--border)'}}>
+                  <td className="py-2 pr-4 text-xs" style={{color:'var(--text-faint)'}}>{g.data}</td>
+                  <td className="py-2 pr-4" style={{color:'var(--text-primary)'}}>{g.descricao}</td>
+                  <td className="py-2 pr-4 text-xs" style={{color:'var(--text-faint)'}}>{g.empreendimentos?.nome||'Institucional'}</td>
+                  <td className="py-2 pr-4"><Badge color="gray">{g.categoria}</Badge></td>
+                  <td className="py-2 pr-4 text-xs" style={{color:'var(--text-faint)'}}>{g.fornecedor||'—'}</td>
+                  <td className="py-2 pr-4 font-semibold" style={{color:'var(--accent)'}}>{brl(g.valor,2)}</td>
+                  <td className="py-2 no-print">
                     {can('canManageUsers') && (
                       <div className="flex gap-2">
                         <button onClick={()=>openEdit(g)} className="text-xs hover:opacity-70" style={{color:'var(--text-faint)'}}>✎</button>
@@ -110,7 +115,7 @@ export default function Gastos() {
           <Select label="Categoria" value={form.categoria} onChange={e=>setForm(f=>({...f,categoria:e.target.value}))}>
             {CATS.map(c=><option key={c} value={c}>{c}</option>)}
           </Select>
-          <Input label="Subcategoria" placeholder="Ex: Meta Ads, Gráfica..." value={form.subcategoria} onChange={e=>setForm(f=>({...f,subcategoria:e.target.value}))}/>
+          <Input label="Subcategoria" value={form.subcategoria} onChange={e=>setForm(f=>({...f,subcategoria:e.target.value}))}/>
           <Input label="Descrição" value={form.descricao} onChange={e=>setForm(f=>({...f,descricao:e.target.value}))}/>
           <Input label="Fornecedor" value={form.fornecedor} onChange={e=>setForm(f=>({...f,fornecedor:e.target.value}))}/>
           <Input label="Valor (R$)" type="number" value={form.valor} onChange={e=>setForm(f=>({...f,valor:e.target.value}))}/>

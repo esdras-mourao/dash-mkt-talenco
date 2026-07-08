@@ -126,3 +126,36 @@ export function EmptyState({ icon, title, sub }) {
     </div>
   )
 }
+
+// ── DATE FILTER + EXPORT ────────────────────────────────────
+export function DateFilter({ from, to, onFrom, onTo, onClear }) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap no-print">
+      <div className="flex flex-col gap-0.5">
+        <label className="text-[10px] font-semibold uppercase tracking-wide" style={{color:'var(--text-faint)'}}>De</label>
+        <input type="date" value={from} onChange={e=>onFrom(e.target.value)}
+          className="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+          style={{background:'var(--bg-input)',borderColor:'var(--border-input)',color:'var(--text-primary)'}}/>
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <label className="text-[10px] font-semibold uppercase tracking-wide" style={{color:'var(--text-faint)'}}>Até</label>
+        <input type="date" value={to} onChange={e=>onTo(e.target.value)}
+          className="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+          style={{background:'var(--bg-input)',borderColor:'var(--border-input)',color:'var(--text-primary)'}}/>
+      </div>
+      {(from||to) && (
+        <button onClick={onClear} className="text-xs mt-3 hover:opacity-70" style={{color:'var(--text-faint)'}}>✕ Limpar</button>
+      )}
+    </div>
+  )
+}
+
+export function ExportBtn({ label = 'Exportar PDF' }) {
+  return (
+    <button onClick={()=>window.print()}
+      className="no-print flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold border transition-all hover:opacity-80"
+      style={{background:'var(--bg-input)',borderColor:'var(--border)',color:'var(--text-muted)'}}>
+      ⬇ {label}
+    </button>
+  )
+}

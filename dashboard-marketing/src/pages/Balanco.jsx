@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { brl, MESES } from '../lib/fmt'
-import { Card, PageHeader, StatCard, Select, Badge } from '../components/UI'
+import { Card, PageHeader, StatCard, Select, Badge, DateFilter, ExportBtn } from '../components/UI'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from 'recharts'
 
 export default function Balanco() {
@@ -50,10 +50,20 @@ export default function Balanco() {
   return (
     <div className="flex-1 p-8 overflow-y-auto" style={{background:'var(--bg-base)'}}>
       <PageHeader title="Balanço de Marketing" sub="Receitas, saving, caixa e custos por mês">
-        <Select value={ano} onChange={e=>setAno(Number(e.target.value))}>
+        <div className="flex gap-2 items-center no-print">
+          <ExportBtn/>
+          <Select value={ano} onChange={e=>setAno(Number(e.target.value))}>
           {[2024,2025,2026].map(a=><option key={a} value={a}>{a}</option>)}
-        </Select>
+          </Select>
+        </div>
       </PageHeader>
+      <div className="flex justify-end mb-4 no-print">
+        <button onClick={()=>{ const t=document.title; document.title="Balanco — TalenCo Marketing"; window.print(); document.title=t; }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-80"
+          style={{background:'var(--bg-input)',color:'var(--text-primary)',border:'1px solid var(--border)'}}>
+          ⬇ Exportar PDF
+        </button>
+      </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">

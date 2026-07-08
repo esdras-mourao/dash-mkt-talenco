@@ -1,3 +1,4 @@
+import { DateFilter } from '../components/DateFilter'
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { supabase } from '../lib/supabase'
@@ -67,6 +68,13 @@ export default function Caixa() {
       <PageHeader title="Caixa de Marketing" sub="1% do VGV vendido · Split 70% produto / 30% institucional">
         <Btn onClick={() => setModalVenda(true)}>+ Registrar Venda</Btn>
       </PageHeader>
+      <div className="flex justify-end mb-4 no-print">
+        <button onClick={()=>{ const t=document.title; document.title="Caixa — TalenCo Marketing"; window.print(); document.title=t; }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-80"
+          style={{background:'var(--bg-input)',color:'var(--text-primary)',border:'1px solid var(--border)'}}>
+          ⬇ Exportar PDF
+        </button>
+      </div>
 
       {/* Totais */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

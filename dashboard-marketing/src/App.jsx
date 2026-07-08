@@ -8,9 +8,11 @@ import Orcamento from './pages/Orcamento'
 import Caixa from './pages/Caixa'
 import Campanhas from './pages/Campanhas'
 import Audiencia from './pages/Audiencia'
+import Funil from './pages/Funil'
 import Eventos from './pages/Eventos'
 import Brindes from './pages/Brindes'
 import Gastos from './pages/Gastos'
+import Fornecedores from './pages/Fornecedores'
 import Configuracoes from './pages/Configuracoes'
 
 function Protected({ children, permission }) {
@@ -23,7 +25,7 @@ function AppShell() {
   const { user, loading } = useAuth()
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{background:'var(--bg-base)'}}>
-      <div className="font-display text-lg animate-pulse" style={{color:'var(--accent)'}}>TalenCo</div>
+      <div className="font-display text-xl font-bold animate-pulse" style={{color:'var(--accent)'}}>TalenCo</div>
     </div>
   )
   if (!user) return <Login />
@@ -38,9 +40,11 @@ function AppShell() {
           <Route path="/caixa" element={<Protected permission="canAddVendas"><Caixa /></Protected>} />
           <Route path="/campanhas" element={<Campanhas />} />
           <Route path="/audiencia" element={<Audiencia />} />
+          <Route path="/funil" element={<Funil />} />
           <Route path="/eventos" element={<Eventos />} />
           <Route path="/brindes" element={<Brindes />} />
           <Route path="/gastos" element={<Protected permission="canAddGastos"><Gastos /></Protected>} />
+          <Route path="/fornecedores" element={<Fornecedores />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

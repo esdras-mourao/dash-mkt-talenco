@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { brl, MESES } from '../lib/fmt'
-import { Card, PageHeader, Badge, Btn, Select, StatCard } from '../components/UI'
+import { Card, PageHeader, Badge, Btn, Select, StatCard, DateFilter, ExportBtn } from '../components/UI'
 
 const CATS = ['midia', 'eventos', 'ferramentas', 'outros']
 const ANOS = [2024, 2025, 2026]
@@ -77,9 +77,17 @@ export default function Orcamento() {
           <Select value={ano} onChange={e => setAno(Number(e.target.value))}>
             {ANOS.map(a => <option key={a} value={a}>{a}</option>)}
           </Select>
+          <ExportBtn/>
           <Btn onClick={savePlan} disabled={saving}>{saving ? 'Salvando...' : 'Salvar Plano'}</Btn>
         </div>
       </PageHeader>
+      <div className="flex justify-end mb-4 no-print">
+        <button onClick={()=>{ const t=document.title; document.title="Orcamento — TalenCo Marketing"; window.print(); document.title=t; }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-80"
+          style={{background:'var(--bg-input)',color:'var(--text-primary)',border:'1px solid var(--border)'}}>
+          ⬇ Exportar PDF
+        </button>
+      </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         <StatCard label="Total Planejado" value={brl(totais.plan)} accent="#F2B82A" />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { brl, num } from '../lib/fmt'
-import { Card, PageHeader, Badge, Btn, Modal, Input, Select, StatCard } from '../components/UI'
+import { Card, PageHeader, Badge, Btn, Modal, Input, Select, StatCard, DateFilter, ExportBtn } from '../components/UI'
 import { useAuth } from '../lib/AuthContext'
 
 const TIPOS = ['evento','ativacao','stand','visita_obra','lançamento']
@@ -11,8 +11,11 @@ export default function Eventos() {
   const { can } = useAuth()
   const [eventos, setEventos] = useState([])
   const [emps, setEmps] = useState([])
+  const [datas, setDatas] = useState({ de:'', ate:'' })
   const [modal, setModal] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [filtroDE, setFiltroDE] = useState('')
+  const [filtroATE, setFiltroATE] = useState('')
   const [form, setForm] = useState({ nome:'', tipo:'evento', empreendimento_id:'', data_inicio:'', data_fim:'', local:'', publico_estimado:'', orcamento_planejado:'', custo_real:'', status:'planejado', responsavel:'', obe:'', resultado:'' })
 
   async function load() {
@@ -55,15 +58,24 @@ export default function Eventos() {
     await supabase.from('eventos').update({status}).eq('id',id); await load()
   }
 
-  const totalOrc = eventos.reduce((s,e)=>s+Number(e.orcamento_planejado||0),0)
-  const totalReal = eventos.reduce((s,e)=>s+Number(e.custo_real||0),0)
-  const totalPublico = eventos.reduce((s,e)=>s+Number(e.publico_real||e.publico_estimado||0),0)
+  const filtrados = eventos.filter(e=>
+    (!filtroDE || e.data_inicio >= filtroDE) &&
+    (!filtroATE || e.data_inicio <= filtroATE)
+  )
+  const totalOrc = filtrados.reduce((s,e)=>s+Number(e.orcamento_planejado||0),0)
+  const totalReal = filtrados.reduce((s,e)=>s+Number(e.custo_real||0),0)
+  const totalPublico = filtrados.reduce((s,e)=>s+Number(e.publico_real||e.publico_estimado||0),0)
 
   return (
     <div className="flex-1 p-8 overflow-y-auto" style={{background:'var(--bg-base)'}}>
       <PageHeader title="Eventos & Ativações" sub="Planejamento e controle de ações offline">
-        {can('canAddEventos') && <Btn onClick={openNew}>+ Novo Evento</Btn>}
+        {can('canAddEventos') && <Btn className="no-print" onClick={openNew}>+ Novo Evento</Btn>}
       </PageHeader>
+      <DateFilter de={datas.de} ate={datas.ate} onChange={(k,v)=>setDatas(d=>({...d,[k]:v}))} title="Eventos — TalenCo Marketing"/>
+      <div className="flex gap-3 mb-4 flex-wrap no-print">
+        <DateFilter from={filtroDE} to={filtroATE} onFrom={setFiltroDE} onTo={setFiltroATE} onClear={()=>{setFiltroDE('');setFiltroATE('')}}/>
+        <ExportBtn/>
+      </div>
       <div className="grid grid-cols-3 gap-4 mb-6">
         <StatCard label="Eventos no Ano" value={eventos.length} accent="var(--accent)"/>
         <StatCard label="Orçamento Planejado" value={brl(totalOrc)} accent="#C6552A"/>
@@ -71,8 +83,8 @@ export default function Eventos() {
           sub={totalOrc>0?`${((totalReal/totalOrc)*100).toFixed(0)}% do orçado`:''}/>
       </div>
       <div className="flex flex-col gap-3">
-        {eventos.length===0 && <Card><div className="text-center py-8 italic text-sm" style={{color:'var(--text-faint)'}}>Nenhum evento cadastrado</div></Card>}
-        {eventos.map(ev=>(
+        {eventos.filter(ev=>{ const d=ev.data_inicio?.slice(0,10); return (!datas.de||d>=datas.de)&&(!datas.ate||d<=datas.ate) }).length===0 && <Card><div className="text-center py-8 italic text-sm" style={{color:'var(--text-faint)'}}>Nenhum evento cadastrado</div></Card>}
+        {eventos.filter(ev=>{ const d=ev.data_inicio?.slice(0,10); return (!datas.de||d>=datas.de)&&(!datas.ate||d<=datas.ate) }).map(ev=>(
           <Card key={ev.id}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">

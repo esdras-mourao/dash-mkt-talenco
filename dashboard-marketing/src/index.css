@@ -33,8 +33,26 @@
   --accent2:      #1A4060;
 }
 
-body { margin:0; background:var(--bg-base); color:var(--text-primary); font-family:'Plus Jakarta Sans','DM Sans',sans-serif; -webkit-font-smoothing:antialiased; transition:background 0.2s,color 0.2s; }
-.font-display { font-family:'Syne','Plus Jakarta Sans',sans-serif; }
-::-webkit-scrollbar { width:4px; height:4px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Montserrat', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+.font-display { font-family: 'Montserrat', sans-serif; font-weight: 700; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── PRINT / PDF EXPORT ── */
+@media print {
+  .no-print { display: none !important; }
+  .sidebar-nav { display: none !important; }
+  body { background: #fff !important; color: #000 !important; font-family: 'Montserrat', sans-serif; }
+  .print-page { background: #fff !important; color: #000 !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
