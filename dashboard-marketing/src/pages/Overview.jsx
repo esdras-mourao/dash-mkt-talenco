@@ -17,8 +17,7 @@ export default function Overview() {
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
 
-  useEffect(() => {
-    async function load() {
+  async function load() {
       const [vendasR, gastosR, kpisR, audienciaR, brindesR] = await Promise.all([
         supabase.from('vendas').select('valor_vgv, mes').eq('ano', ANO),
         supabase.from('gastos').select('valor, categoria, mes').eq('ano', ANO),
@@ -59,9 +58,9 @@ export default function Overview() {
 
       setAlertas(brindesR.data || [])
       setLoading(false)
-    }
-    load()
-  }, [])
+  }
+
+  useEffect(() => { load() }, [])
 
   const COLORS = ['#F2B82A','#C6552A','#1A4060','#D4956A','#4a7c59','#9a8b7d']
 
@@ -72,7 +71,7 @@ export default function Overview() {
       const metaOk = r.meta?.ok
       const pipeOk = r.pipedrive?.ok
       setSyncMsg(`Meta: ${metaOk?'✓':'✗'} ${r.meta?.campanhas||r.meta?.erro||''} | Pipedrive: ${pipeOk?'✓':'✗'} ${r.pipedrive?.estagios?.length||r.pipedrive?.erro||''}`)
-      await load()
+      load()
     } catch(e) { setSyncMsg('✗ ' + e.message) }
     setSyncing(false)
     setTimeout(()=>setSyncMsg(''),8000)

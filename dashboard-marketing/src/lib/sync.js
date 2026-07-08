@@ -1,30 +1,46 @@
 import { supabase } from './supabase'
 
-// URL base das Edge Functions — padrão Supabase
-const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`
-
 async function callFunction(name) {
+  // Pega a session atual
   const { data: { session } } = await supabase.auth.getSession()
-  const token = session?.access_token
+  
+  // Monta a URL correta das Edge Functions
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+  const url = `${supabaseUrl}/functions/v1/${name}`
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+  }
+  
+  // Adiciona Authorization só se tiver sessão
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`
+  } else {
+    // Sem sessão, usa a anon key como bearer
+    headers['Authorization'] = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+  }
 
-  if (!token) throw new Error('Usuário não autenticado')
-
-  const res = await fetch(`${FUNCTIONS_URL}/${name}`, {
+  console.log(`Calling ${url}`)
+  
+  const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-    },
+    headers,
     body: JSON.stringify({}),
   })
 
+  const text = await res.text()
+  console.log(`Response ${res.status}:`, text)
+
   if (!res.ok) {
-    const err = await res.text()
-    throw new Error(`${name}: ${res.status} — ${err}`)
+    throw new Error(`${name}: HTTP ${res.status} — ${text}`)
   }
 
-  return res.json()
+  try {
+    return JSON.parse(text)
+  } catch {
+    return { ok: true, raw: text }
+  }
 }
 
 export const syncMetaAds   = () => callFunction('sync-meta-ads')
