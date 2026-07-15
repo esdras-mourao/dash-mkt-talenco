@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+* { box-sizing: border-box; }
+
+:root, [data-theme="dark"] {
+  --bg-base:      #130f0c;
+  --bg-card:      #1e1a16;
+  --bg-input:     #2a2420;
+  --border:       #2e2820;
+  --border-input: #3e3028;
+  --text-primary: #F7F3EE;
+  --text-muted:   #9a8b7d;
+  --text-faint:   #6b5d50;
+  --text-xfaint:  #4a3d33;
+  --sidebar-bg:   #130f0c;
+  --accent:       #F2B82A;
+  --accent2:      #C6552A;
+}
+
+[data-theme="light"] {
+  --bg-base:      #F5F0EA;
+  --bg-card:      #FFFFFF;
+  --bg-input:     #EDE8E0;
+  --border:       #D8CFC3;
+  --border-input: #C5BAA8;
+  --text-primary: #1C1410;
+  --text-muted:   #4a3d33;
+  --text-faint:   #6b5d50;
+  --text-xfaint:  #9a8b7d;
+  --sidebar-bg:   #EDE8E0;
+  --accent:       #C6552A;
+  --accent2:      #1A4060;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Montserrat', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+.font-display { font-family: 'Montserrat', sans-serif; font-weight: 700; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── PRINT / PDF EXPORT ── */
+@media print {
+  .no-print { display: none !important; }
+  .sidebar-nav { display: none !important; }
+  body { background: #fff !important; color: #000 !important; font-family: 'Montserrat', sans-serif; }
+  .print-page { background: #fff !important; color: #000 !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
